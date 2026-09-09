@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HomeList } from "@/components/home-list";
 import { RoutePending } from "@/components/run-missing";
-import { listFixtureRuns } from "@/lib/fixtures";
-import { listFixtureSignals } from "@/tasks/radar/signal-fixtures";
 import { buildHomeSummary, getHomeFn } from "@/task/home";
 
 export const Route = createFileRoute("/")({
@@ -10,7 +8,7 @@ export const Route = createFileRoute("/")({
     try {
       return await getHomeFn();
     } catch {
-      return buildHomeSummary(listFixtureSignals(), listFixtureRuns());
+      return buildHomeSummary(true);
     }
   },
   pendingComponent: RoutePending,
