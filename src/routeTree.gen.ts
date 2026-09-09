@@ -17,6 +17,8 @@ import { Route as CodingIdRouteImport } from './routes/coding.$id'
 import { Route as RadarIndexRouteImport } from './routes/radar.index'
 import { Route as RadarIdRouteImport } from './routes/radar.$id'
 import { Route as ApiRadarIndexRouteImport } from './routes/api/radar.index'
+import { Route as ApiRadarCapabilitiesRouteImport } from './routes/api/radar.capabilities'
+import { Route as ApiRadarRunRouteImport } from './routes/api/radar.run'
 import { Route as ApiRunsIndexRouteImport } from './routes/api/runs.index'
 import { Route as ApiRunsIdRouteImport } from './routes/api/runs.$id'
 
@@ -60,6 +62,16 @@ const ApiRadarIndexRoute = ApiRadarIndexRouteImport.update({
   path: '/api/radar/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRadarCapabilitiesRoute = ApiRadarCapabilitiesRouteImport.update({
+  id: '/api/radar/capabilities',
+  path: '/api/radar/capabilities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRadarRunRoute = ApiRadarRunRouteImport.update({
+  id: '/api/radar/run',
+  path: '/api/radar/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRunsIndexRoute = ApiRunsIndexRouteImport.update({
   id: '/api/runs/',
   path: '/api/runs/',
@@ -79,6 +91,8 @@ export interface FileRoutesByFullPath {
   '/radar/$id': typeof RadarIdRoute
   '/coding/': typeof CodingIndexRoute
   '/radar/': typeof RadarIndexRoute
+  '/api/radar/capabilities': typeof ApiRadarCapabilitiesRoute
+  '/api/radar/run': typeof ApiRadarRunRoute
   '/api/runs/$id': typeof ApiRunsIdRoute
   '/api/radar/': typeof ApiRadarIndexRoute
   '/api/runs/': typeof ApiRunsIndexRoute
@@ -89,6 +103,8 @@ export interface FileRoutesByTo {
   '/radar/$id': typeof RadarIdRoute
   '/coding': typeof CodingIndexRoute
   '/radar': typeof RadarIndexRoute
+  '/api/radar/capabilities': typeof ApiRadarCapabilitiesRoute
+  '/api/radar/run': typeof ApiRadarRunRoute
   '/api/runs/$id': typeof ApiRunsIdRoute
   '/api/radar': typeof ApiRadarIndexRoute
   '/api/runs': typeof ApiRunsIndexRoute
@@ -102,6 +118,8 @@ export interface FileRoutesById {
   '/radar/$id': typeof RadarIdRoute
   '/coding/': typeof CodingIndexRoute
   '/radar/': typeof RadarIndexRoute
+  '/api/radar/capabilities': typeof ApiRadarCapabilitiesRoute
+  '/api/radar/run': typeof ApiRadarRunRoute
   '/api/runs/$id': typeof ApiRunsIdRoute
   '/api/radar/': typeof ApiRadarIndexRoute
   '/api/runs/': typeof ApiRunsIndexRoute
@@ -116,6 +134,8 @@ export interface FileRouteTypes {
     | '/radar/$id'
     | '/coding/'
     | '/radar/'
+    | '/api/radar/capabilities'
+    | '/api/radar/run'
     | '/api/runs/$id'
     | '/api/radar/'
     | '/api/runs/'
@@ -126,6 +146,8 @@ export interface FileRouteTypes {
     | '/radar/$id'
     | '/coding'
     | '/radar'
+    | '/api/radar/capabilities'
+    | '/api/radar/run'
     | '/api/runs/$id'
     | '/api/radar'
     | '/api/runs'
@@ -138,6 +160,8 @@ export interface FileRouteTypes {
     | '/radar/$id'
     | '/coding/'
     | '/radar/'
+    | '/api/radar/capabilities'
+    | '/api/radar/run'
     | '/api/runs/$id'
     | '/api/radar/'
     | '/api/runs/'
@@ -147,6 +171,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CodingRoute: typeof CodingRouteWithChildren
   RadarRoute: typeof RadarRouteWithChildren
+  ApiRadarCapabilitiesRoute: typeof ApiRadarCapabilitiesRoute
+  ApiRadarRunRoute: typeof ApiRadarRunRoute
   ApiRunsIdRoute: typeof ApiRunsIdRoute
   ApiRadarIndexRoute: typeof ApiRadarIndexRoute
   ApiRunsIndexRoute: typeof ApiRunsIndexRoute
@@ -210,6 +236,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRadarIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/radar/capabilities': {
+      id: '/api/radar/capabilities'
+      path: '/api/radar/capabilities'
+      fullPath: '/api/radar/capabilities'
+      preLoaderRoute: typeof ApiRadarCapabilitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/radar/run': {
+      id: '/api/radar/run'
+      path: '/api/radar/run'
+      fullPath: '/api/radar/run'
+      preLoaderRoute: typeof ApiRadarRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/runs/': {
       id: '/api/runs/'
       path: '/api/runs'
@@ -256,6 +296,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CodingRoute: CodingRouteWithChildren,
   RadarRoute: RadarRouteWithChildren,
+  ApiRadarCapabilitiesRoute: ApiRadarCapabilitiesRoute,
+  ApiRadarRunRoute: ApiRadarRunRoute,
   ApiRunsIdRoute: ApiRunsIdRoute,
   ApiRadarIndexRoute: ApiRadarIndexRoute,
   ApiRunsIndexRoute: ApiRunsIndexRoute,

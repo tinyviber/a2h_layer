@@ -725,6 +725,122 @@
   text-underline-offset: var(--space-1);
 }
 
+/* —— Radar 发现（capability 配置面，默认折叠） —— */
+
+.radar-discover {
+  margin-bottom: var(--space-5);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.radar-discover-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--section-size);
+  line-height: var(--section-leading);
+  font-weight: 600;
+  text-align: left;
+}
+
+.radar-discover-hint {
+  font-size: var(--meta-size);
+  line-height: var(--meta-leading);
+  letter-spacing: var(--meta-tracking);
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.radar-discover-body {
+  padding: var(--space-4);
+  border-top: 1px solid var(--track);
+}
+
+.radar-source-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.radar-source {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.radar-source-name {
+  font-size: var(--meta-size);
+  line-height: var(--meta-leading);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.radar-source-desc {
+  font-size: var(--meta-size);
+  line-height: var(--meta-leading);
+  letter-spacing: var(--meta-tracking);
+  color: var(--muted);
+}
+
+.radar-model {
+  margin-top: var(--space-3);
+  font-size: var(--meta-size);
+  line-height: var(--meta-leading);
+  letter-spacing: var(--meta-tracking);
+  color: var(--muted);
+}
+
+.radar-run {
+  margin-top: var(--space-4);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
+  transition: background var(--motion-quick) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .radar-run:hover:not(:disabled) {
+    background: var(--track);
+  }
+}
+
+.radar-run:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.radar-run-outcome {
+  margin-top: var(--space-3);
+  font-size: var(--meta-size);
+  line-height: var(--meta-leading);
+  letter-spacing: var(--meta-tracking);
+  color: var(--text);
+}
+
+.radar-run-error {
+  margin-top: var(--space-3);
+  font-size: var(--meta-size);
+  line-height: var(--meta-leading);
+  color: var(--muted);
+}
+
 /* 内联 raw JSON（Coding 阅读页折叠） */
 .reader .raw-json {
   margin-top: var(--space-4);

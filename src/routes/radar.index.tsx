@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RoutePending } from "@/components/run-missing";
 import { listFixtureSignals } from "@/tasks/radar/signal-fixtures";
 import { listSignalsFn } from "@/tasks/radar/signal-functions";
+import { RadarDiscover } from "@/tasks/radar/radar-discover";
 import { SignalList } from "@/tasks/radar/signal-list";
 
 export const Route = createFileRoute("/radar/")({
@@ -27,6 +28,7 @@ function RadarIndexPage() {
         <h1>阅读 Inbox</h1>
         <p className="muted">{signals.length} 条 source · 按更新时间倒序</p>
       </header>
+      <RadarDiscover />
       <SignalList signals={signals} />
     </main>
   );
