@@ -11,24 +11,17 @@ export type RadarEngagement = Record<string, string | number>;
 
 export type RadarItem = {
   id: string;
-  /** 原文/来源的可读标题。 */
   title: string;
-  /** 用户关注方向，例如 AI / 游戏设计 / 人生故事。 */
   topic: string;
-  /** 来源平台或发现渠道，例如 x / rss / search / github。 */
   source: string;
   author?: string;
   language?: string;
   url?: string;
   publishedAt?: string;
   engagement?: RadarEngagement;
-  /** 中文短摘要，不替代原文。 */
   summary: string;
-  /** 核心论证或叙事结构，保持可扫读。 */
   argumentMap: string[];
-  /** 为什么值得投入人类注意力。 */
   whyWorthReading: string;
-  /** 必要的质疑、反例或不确定性。 */
   critique: string;
   createdAt: string;
   updatedAt: string;
@@ -108,7 +101,6 @@ function preservedExtras(input: Record<string, unknown>): Record<string, unknown
     "detail",
     "suggestion",
     "href",
-    // Human-owned / legacy decision fields must never pass through Agent ingest.
     "humanDecision",
     "decision",
     "status",
