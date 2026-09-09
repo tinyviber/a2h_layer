@@ -1,0 +1,29 @@
+{
+  "id": "run_checkout_tests",
+  "title": "结算金额断言失败",
+  "agent": "claude-code",
+  "project": "checkout-web",
+  "status": "failed",
+  "createdAt": "2026-09-08T08:58:00.000Z",
+  "updatedAt": "2026-09-08T09:09:00.000Z",
+  "unread": true,
+  "summary": [
+    "src/checkout.test.ts 在含税合计上失败：期望 20，实际 19.99。",
+    "定价代码未改。失败来自既有断言，不是这次 diff。"
+  ],
+  "nextActions": [],
+  "blocks": [
+    {
+      "type": "log",
+      "id": "blk_log",
+      "command": "pnpm test src/checkout.test.ts",
+      "exitCode": 1,
+      "text": "$ pnpm test src/checkout.test.ts\n\n FAIL  src/checkout.test.ts\n  ● totals tax into grand total\n    AssertionError: expected 19.99 to be 20\n\n      41 |   const total = priceWithTax(items, { region: \"SG\" });\n      42 |   expect(total).toBe(20);\n         |                 ^\n      43 | });\n\n      at Object.toBe (src/checkout.test.ts:42:17)\n\nTest Suites: 1 failed, 1 total\nTests:       1 failed, 3 passed, 4 total\nTime:        1.12 s\n"
+    },
+    {
+      "type": "markdown",
+      "id": "blk_assert",
+      "text": "失败断言在新加坡含税路径：\n\n```ts\nconst total = priceWithTax(items, { region: \"SG\" });\nexpect(total).toBe(20);\n```\n\n`19.99` 对 `20`。浮点金额没有用整数分。"
+    }
+  ]
+}

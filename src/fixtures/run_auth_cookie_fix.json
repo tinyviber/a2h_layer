@@ -1,0 +1,29 @@
+{
+  "id": "run_auth_cookie_fix",
+  "title": "修复登录 Cookie 的 SameSite",
+  "agent": "grok",
+  "project": "checkout-web",
+  "status": "success",
+  "createdAt": "2026-09-08T08:10:00.000Z",
+  "updatedAt": "2026-09-08T08:25:00.000Z",
+  "unread": true,
+  "summary": [
+    "跨站回跳后登录会话会保留，浏览器不再丢掉 sid。",
+    "只改了 cookie 的 SameSite=Lax 与 Secure，登录流程未动。"
+  ],
+  "nextActions": [],
+  "blocks": [
+    {
+      "type": "diff",
+      "id": "blk_diff",
+      "path": "src/auth/session.ts",
+      "text": "--- a/src/auth/session.ts\n+++ b/src/auth/session.ts\n@@ -1,52 +1,53 @@\n import { createHmac } from \"node:crypto\";\n import type { Request, Response } from \"express\";\n \n const COOKIE = \"sid\";\n const DAY = 60 * 60 * 24;\n \n export type Session = {\n   userId: string;\n   issuedAt: number;\n };\n \n export function readSession(req: Request): Session | null {\n   const raw = req.cookies?.[COOKIE];\n   if (!raw) return null;\n   return decode(raw);\n }\n \n export function writeSession(res: Response, userId: string) {\n   const token = encode({ userId, issuedAt: Date.now() });\n   res.cookie(COOKIE, token, {\n     httpOnly: true,\n-    sameSite: \"none\",\n-    secure: false,\n+    sameSite: \"lax\",\n+    secure: true,\n     path: \"/\",\n     maxAge: DAY * 7,\n   });\n }\n \n export function clearSession(res: Response) {\n   res.clearCookie(COOKIE, { path: \"/\" });\n }\n \n function encode(session: Session): string {\n   const body = Buffer.from(JSON.stringify(session)).toString(\"base64url\");\n   const sig = sign(body);\n   return `${body}.${sig}`;\n }\n \n function decode(raw: string): Session | null {\n   const [body, sig] = raw.split(\".\");\n   if (!body || !sig) return null;\n   if (sign(body) !== sig) return null;\n   try {\n     return JSON.parse(Buffer.from(body, \"base64url\").toString());\n   } catch {\n     return null;\n   }\n }\n \n function sign(body: string): string {\n   return createHmac(\"sha256\", process.env.SESSION_SECRET ?? \"dev\")\n     .update(body)\n     .digest(\"base64url\");\n }\n"
+    },
+    {
+      "type": "file",
+      "id": "blk_file",
+      "path": "src/auth/session.ts",
+      "note": "唯一改动文件"
+    }
+  ]
+}

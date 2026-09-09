@@ -1,0 +1,38 @@
+{
+  "id": "run_dep_audit",
+  "title": "依赖漏洞审计",
+  "agent": "grok",
+  "project": "checkout-web",
+  "status": "success",
+  "createdAt": "2026-09-07T09:40:00.000Z",
+  "updatedAt": "2026-09-07T10:00:00.000Z",
+  "unread": true,
+  "summary": [
+    "3 个高危、1 个中危，都有可升级版本。",
+    "lodash 与 next 应先处理，其余可随下次依赖窗口一起升。"
+  ],
+  "nextActions": [
+    { "label": "升级 lodash 到 4.17.21" },
+    { "label": "升级 next 到 14.2.15" },
+    { "label": "下周再看 micromatch" }
+  ],
+  "blocks": [
+    {
+      "type": "markdown",
+      "id": "blk_audit_md",
+      "text": "审计范围是生产 `dependencies`，不含 dev 扫描器误报。\n\n等级按 GitHub Advisory 的 CVSS。建议版本均在当前 major 内。"
+    },
+    {
+      "type": "table",
+      "id": "blk_audit_table",
+      "caption": "生产依赖 · 需处理项",
+      "columns": ["包", "当前", "建议", "等级", "CVE", "说明"],
+      "rows": [
+        ["lodash", "4.17.19", "4.17.21", "高", "CVE-2021-23337", "命令注入 via template"],
+        ["next", "14.2.3", "14.2.15", "高", "CVE-2024-34351", "SSR 重定向"],
+        ["micromatch", "4.0.5", "4.0.8", "高", "CVE-2024-4067", "ReDoS"],
+        ["postcss", "8.4.31", "8.4.47", "中", "CVE-2023-44270", "解析器行注入"]
+      ]
+    }
+  ]
+}

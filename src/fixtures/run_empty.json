@@ -1,0 +1,13 @@
+{
+  "id": "run_empty",
+  "title": "空转：没有可报告的变更",
+  "agent": "other",
+  "project": "sandbox",
+  "status": "success",
+  "createdAt": "2026-09-06T10:40:00.000Z",
+  "updatedAt": "2026-09-06T11:00:00.000Z",
+  "unread": true,
+  "summary": [],
+  "nextActions": [],
+  "blocks": []
+}

@@ -1,0 +1,34 @@
+{
+  "id": "run_refactor_wip",
+  "title": "正在拆分 billing 模块",
+  "agent": "codex",
+  "project": "checkout-web",
+  "status": "running",
+  "createdAt": "2026-09-08T09:18:00.000Z",
+  "updatedAt": "2026-09-08T09:24:00.000Z",
+  "unread": true,
+  "summary": [
+    "已定位 BillingClient 与 cart 的循环依赖，开始拆文件。"
+  ],
+  "nextActions": [],
+  "blocks": [
+    {
+      "type": "markdown",
+      "id": "blk_wip_md",
+      "text": "进行中。下一步是把价格计算从 `cart.ts` 挪走。下面的代码还不能编译。"
+    },
+    {
+      "type": "code",
+      "id": "blk_wip_code",
+      "path": "src/billing/client.ts",
+      "language": "ts",
+      "text": "export function createBillingClient(opts: BillingOpts) {\n  return {\n    quote(items: Item[]) {\n      // TODO: move tax tables out of cart.ts\n      return quoteItems(items, opts.region);\n    },\n  };\n}\n"
+    },
+    {
+      "type": "screenshot",
+      "id": "blk_shot",
+      "path": "artifacts/billing-graph.png",
+      "note": "Agent 试图附一张依赖图，本 App 不渲染该类型"
+    }
+  ]
+}

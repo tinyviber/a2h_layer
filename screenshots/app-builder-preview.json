@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Inbox · Agent Output Reader",
+      "hasCanvas": false,
+      "bodyTextLen": 322,
+      "bodyTextHash": "87216d8ff586c1b90be58f98a84bac2593d263f672317a04e0b0d53e6c1dd5fb",
+      "bodyTextPrefix": "Agent Output Reader Inbox 6 次投递 · 按更新时间倒序 正在拆分 billing 模块 Codex ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Inbox · Agent Output Reader",
+      "hasCanvas": false,
+      "bodyTextLen": 322,
+      "bodyTextHash": "87216d8ff586c1b90be58f98a84bac2593d263f672317a04e0b0d53e6c1dd5fb",
+      "bodyTextPrefix": "Agent Output Reader Inbox 6 次投递 · 按更新时间倒序 正在拆分 billing 模块 Codex ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [
+    "BRAND NOTE: no custom public/og.jpg — the platform will serve the og.grok.me placeholder. Custom cards are the default for games of every kind (DOM board/word games included), whimsical apps, creative tools, and brand-forward pages — only plain utilities (converters, CRUD trackers, admin dashboards) keep the placeholder. If this app is not a plain utility, finish the brand-asset pass per /workspace/.grok/skills/og/SKILL.md."
+  ],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}
