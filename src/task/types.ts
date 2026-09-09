@@ -1,33 +1,40 @@
 // 任务基座：统一的是「系统」，不是「页面」。
 //
-// 一个 Task 是一个长期存在的小型工作空间。它在这里只被描述成最少的东西：
-// 元信息（Home 用它列出来）+ 它自己的 surface（人阅读它的方式）。
-// 数据、状态、契约、交互全部由每个 Task 自己定义，见 src/tasks/<id>/。
+// Task 只描述长期工作空间本身。Inbox / unread / items 都不是 Task 的固有属性；
+// 它们只是某些 Task 选择使用的 Home projection pattern。
 
 export type TaskId = string;
 
 export type TaskMeta = {
   id: TaskId;
   name: string;
-  /** 这个任务列表页的路由路径（任务名在 chrome 里点它回到列表）。 */
+  /** 这个任务的入口路径。 */
   path: string;
-  /** 本地已读状态的 localStorage key（Home 用它判断「哪里需要我注意」）。 */
-  readKey: string;
   description: string;
-  /** Home 上这一行提示这个任务的交互方式（阅读 / 判断 / 观察…）。 */
+  /** Home 上提示这个任务主要的人类交互方式。 */
   hint: string;
 };
 
-/** Home 聚合时对任意任务条目做的归一化，让 Home 不感知 Signal / Run 的具体形状。 */
+/** 某些 Task 可以把内部记录投影成 Home 可理解的一条“最新变化”。 */
 export type HomeItem = {
   id: string;
   title: string;
   updatedAt: string;
-  unread: boolean;
+  unread?: boolean;
 };
 
-/** Home 概览里一行任务的快照。 */
+/**
+ * Home 只关心“哪里值得我注意”，不要求 Task 内部一定存在 items / unread。
+ * local-read 是当前 Radar / Coding 使用的模式；未来任务也可以直接给 count，
+ * 或完全没有 attention 概念。
+ */
+export type TaskAttention =
+  | { kind: "local-read"; storageKey: string; items: HomeItem[] }
+  | { kind: "count"; count: number; label?: string }
+  | { kind: "none" };
+
+/** Home 消费的 Task 快照。它是 projection，不是 Task 的 domain model。 */
 export type TaskSummary = TaskMeta & {
-  /** 按 updatedAt 倒序的条目，用于算「最新变化」和「未读数」。 */
-  items: HomeItem[];
+  attention: TaskAttention;
+  latest?: HomeItem;
 };
