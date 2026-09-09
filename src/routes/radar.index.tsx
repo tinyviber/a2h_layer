@@ -24,8 +24,8 @@ function RadarIndexPage() {
   return (
     <main className="page">
       <header className="inbox-head">
-        <h1>信号</h1>
-        <p className="muted">{signals.length} 条 · 按更新时间倒序</p>
+        <h1>阅读 Inbox</h1>
+        <p className="muted">{signals.length} 条 source · 按更新时间倒序</p>
       </header>
       <SignalList signals={signals} />
     </main>
