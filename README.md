@@ -81,7 +81,7 @@ npm run dev
 
 开发服务器默认在 `http://localhost:8080`。
 
-验证：
+验证入口：
 
 ```bash
 npm run typecheck
