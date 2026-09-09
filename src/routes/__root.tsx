@@ -9,7 +9,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Agent Output Reader";
+const APP_NAME = "工作台";
 
 function RegisterServiceWorker() {
   useEffect(() => {
@@ -29,7 +29,7 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#f4f1ea" },
       {
         name: "description",
-        content: "接在 Coding Agent 后面的阅读层：只渲染结构化 Run。",
+        content: "我和 Agent 一起工作的个人界面：任务、信号、产出。",
       },
     ],
     links: [

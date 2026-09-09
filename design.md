@@ -1,51 +1,62 @@
 # design.md
 
-Visual principle: an engineering reader, not a SaaS marketing page.
+Visual principle: a warm, card-based personal work surface — readable first, never generic SaaS chrome.
 
 ## Intent
 
 Open the App and within three seconds know:
 
-1. What the Agent finished
-2. Which evidence to read first
-3. What to do if it failed
+1. Which long-lived Tasks exist
+2. Where something deserves attention
+3. Inside a Task, what to read / inspect / decide next
 
-The UI is a document. It is not a dashboard, not a card wall, not a hero landing.
+The product is **task-shaped, not page-shaped**. Different Tasks may look genuinely different.
+
+Unify the system, not the page template.
+
+## Product boundaries
+
+- **Human-facing UI ≠ machine-facing data.** Agent writes structured state; the Task surface decides how humans read it.
+- **Home is an overview, not a metrics dashboard.**
+- **Task surfaces are free to differ.** Radar may be a reading Inbox; Coding may emphasize diff / log / artifact; another Task may use timeline or workflow views.
+- Item / unread / decision patterns are optional. Do not force them onto every Task.
+- Shared capabilities such as Model / Agent / Workflow / Tool may exist beneath Tasks, but their UI is task-specific.
 
 ## Viewport
 
-- Mobile first. Design at **390px**.
-- Body measure: **40rem** max.
-- `table` / `diff` / `code` / `log` may fill the content column (still inside page padding) and scroll internally. They must not blow the page width.
+- Mobile first at **390px**.
+- Main reading measure: **40rem** max.
+- Desktop Home may use two columns when that improves hierarchy.
+- Code / diff / log / tables scroll internally; never cause page-level horizontal overflow.
 
 ## Type
 
-System stack only. No Google Fonts.
+System stack only. No remote fonts.
 
 - Sans: `ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif`
-- Mono (code / diff / log / raw JSON): `ui-monospace, "SF Mono", Menlo, Consolas, monospace`
+- Mono: `ui-monospace, "SF Mono", Menlo, Consolas, monospace`
 
-| Role | Size / line-height | Weight | Tracking |
-| --- | --- | --- | --- |
-| Titles (`h1`) | 22px / 28px | semibold 600 | -0.7px |
-| Section headers | 17px / 24px | semibold 600 | 0 |
-| Body / summary | 16px / 24px | regular | 0 |
-| Meta (time, agent, project, captions) | 14.5px / 18px | regular | 0.3px |
-| Code / diff / log | 13px / 24px | regular | 0 |
+| Role | Size / line-height | Weight |
+| --- | --- | --- |
+| `h1` | 22 / 28 | 600 |
+| Section | 17 / 24 | 600 |
+| Body | 16 / 24 | 400 |
+| Meta | 14.5 / 18 | 400 |
+| Code | 13 / 24 | 400 |
 
-One `h1` per reading page: the Run title.
+Exactly one `h1` per page.
 
 ## Color
 
-Only these color tokens:
-
 ```css
 :root {
-  --paper: #f4f1ea;
+  --paper: #efeae0;
+  --card: #fdfcf8;
+  --card-border: #e6dfcf;
   --text: #1a1916;
   --muted: #6b6660;
   --strong: #1a1916;
-  --track: #ddd6c8;
+  --track: #ded7c7;
   --bar-success: #2a6b45;
   --bar-running: #2c4a6e;
   --bar-failed: #9b2c2c;
@@ -53,77 +64,110 @@ Only these color tokens:
 }
 ```
 
-| Token | Role |
-| --- | --- |
-| `--paper` | Page background |
-| `--text` | Primary copy, unread titles |
-| `--muted` | Time, agent, project, read titles, empty copy |
-| `--strong` | Unread 6px dot |
-| `--track` | 1px hairlines |
-| `--bar-*` | 3px left status bar only |
+Status text itself stays neutral; color is only a secondary cue.
 
-Status words use `--text` or `--muted`. Never green/red type. Dividers are `1px var(--track)`. Do not wrap lists or code in bordered cards.
+## Cards
+
+Cards are quiet structural containers, not decorative SaaS tiles.
+
+```css
+--radius: 14px;
+--card-shadow: 0 1px 2px rgba(26,25,22,.04), 0 6px 20px rgba(26,25,22,.06);
+--card-shadow-hover: 0 2px 4px rgba(26,25,22,.05), 0 12px 32px rgba(26,25,22,.10);
+```
+
+Rules:
+
+- `--card` fill + 1px border + 14px radius.
+- Never nest cards inside cards.
+- Interactive cards may lift `-2px` on hover; respect `prefers-reduced-motion`.
+- Accent bars carry one semantic signal only. Coding Run status may use `--bar-*`. Do not invent a colored Radar importance scale unless the Radar domain actually needs it.
+- Code remains transparent inside its card; no dark rounded code boxes by default.
 
 ## Space
 
-Only these steps: **4 / 8 / 12 / 16 / 24 / 40**.
+Only use **4 / 8 / 12 / 16 / 24 / 40**.
 
-```css
---space-1: 4px;
---space-2: 8px;
---space-3: 12px;
---space-4: 16px;
---space-5: 24px;
---space-6: 40px;
-```
+## Home
 
-## Chrome
+Home is a calm overview of Tasks.
 
-- Inbox: one row per Run. No large cards. Time on the meta line under the title, with agent · status · project, all `--muted`.
-- Status as words: 进行中 / 成功 / 失败 / 部分完成.
-- Unread: 6px `--strong` dot + semibold title. Read: regular title, no dot, slightly muted.
-- Footer:「标记已读 · 查看原始 JSON」as text buttons.
-- Reading page order is fixed. The Agent cannot rearrange it.
+Each Task decides what it projects to Home. Typical content:
 
-Reading page:
+- Task name
+- short description
+- attention summary if meaningful
+- latest meaningful change if meaningful
 
-1. Top bar: 返回 | agent · status · 时间
-2. `h1` = title (Titles scale)
-3. Summary (or「这次没有结论，直接看证据」)
-4. Next actions (hide the whole block if none)
-5. Blocks in array order
-6. Footer: mark read · view raw JSON
+Do not assume every Task has unread Items.
 
-## Blocks
+Desktop may use a loose two-column bento; mobile is one column. Avoid uniform KPI tile floors.
 
-- Markdown: prose, GFM tables/code, no raw HTML.
-- Code / diff / log: mono, horizontal scroll, hairline top/bottom, no shadow card.
-- Diff: collapsed; preview 40 lines.
-- Log: tail 80 lines. A failed Run must show this evidence under the summary.
-- Table: full content width.
-- File: path only.
-- Unknown type:「不支持的块」+ payload. Must not white-screen.
+## Shared Task chrome
+
+Every in-task page gets a small sticky breadcrumb-like chrome:
+
+`工作台 | TaskName`
+
+It provides location and escape, not navigation clutter.
+
+## Coding surface
+
+Preserve the existing evidence-first reader:
+
+1. title
+2. agent / status / project / time
+3. summary
+4. next actions when present
+5. evidence blocks in order
+6. read / raw JSON controls
+
+Failed runs must make relevant error evidence easy to reach.
+
+## Radar surface
+
+Radar is a **source-discovery / reading Inbox**, not an alert console.
+
+A Radar item may include:
+
+- title / author / language / source
+- visible engagement context
+- concise summary
+- argument / narrative map
+- why it is worth reading
+- critique / doubts
+- original source link
+
+Human decisions such as “留待细读 / 略过” are Human-owned state. They should be readable by later Agents but must not be supplied by Agent ingest.
+
+The UI should encourage reading the original source and later Human Think / Reflection, not treat the item as a final generated article.
 
 ## Motion
 
-150–250ms opacity/transform on expand/collapse. Honor `prefers-reduced-motion`.
+150–250ms opacity / transform only where it clarifies state. Respect reduced motion.
 
 ## Forbidden
 
-- Decorative gradients, glow, glass, blobs
-- Generic hero copy + card grid
-- Cards inside cards
-- Badge / pill piles, upgrade capsules, metric triptychs, ring charts
-- Dark theme, FAB, search chrome, bottom tab bar
-- Three synonymous summary sections
-- Author voice:「我首先分析了仓库…」
-- Dark rounded boxes wrapping every code block, then wrapping that in a card
-- Agent-supplied CSS or HTML
+- decorative gradients / glow / glassmorphism / neumorphism
+- purple-blue AI default visual language
+- generic hero copy
+- nested cards
+- badge / pill piles
+- KPI triptychs / ring charts without genuine need
+- forcing every Task into an Inbox
+- forcing every Task into a workflow canvas
+- turning every noun in product docs into a sidebar item
+- Agent-supplied CSS / HTML
+- dark rounded boxes around every code sample
+- enterprise-dashboard chrome by default
 
-## Checks (must pass)
+## Acceptance checks
 
-- 390px width: no unexpected page-level horizontal overflow (internal code scroll is allowed)
-- Reading page has exactly one `h1`
-- Failed Run: log or error evidence is visible below summary
-- Empty Run: explicit empty copy
-- Unknown block type: no white screen
+- 390px: no unexpected page-level horizontal overflow
+- one `h1` per page
+- Task chrome present inside Tasks
+- unknown Coding block never white-screens the page
+- failed Coding evidence remains visible and readable
+- Radar item opens as a reading page with original source access when URL exists
+- Human Radar decision can be made and undone
+- visual hierarchy remains understandable without relying on color alone

@@ -10,8 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RawIdRouteImport } from './routes/raw.$id'
-import { Route as RunsIdRouteImport } from './routes/runs.$id'
+import { Route as CodingRouteImport } from './routes/coding'
+import { Route as RadarRouteImport } from './routes/radar'
+import { Route as CodingIndexRouteImport } from './routes/coding.index'
+import { Route as CodingIdRouteImport } from './routes/coding.$id'
+import { Route as RadarIndexRouteImport } from './routes/radar.index'
+import { Route as RadarIdRouteImport } from './routes/radar.$id'
+import { Route as ApiRadarIndexRouteImport } from './routes/api/radar.index'
 import { Route as ApiRunsIndexRouteImport } from './routes/api/runs.index'
 import { Route as ApiRunsIdRouteImport } from './routes/api/runs.$id'
 
@@ -20,14 +25,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RawIdRoute = RawIdRouteImport.update({
-  id: '/raw/$id',
-  path: '/raw/$id',
+const CodingRoute = CodingRouteImport.update({
+  id: '/coding',
+  path: '/coding',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RunsIdRoute = RunsIdRouteImport.update({
-  id: '/runs/$id',
-  path: '/runs/$id',
+const RadarRoute = RadarRouteImport.update({
+  id: '/radar',
+  path: '/radar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CodingIndexRoute = CodingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CodingRoute,
+} as any)
+const CodingIdRoute = CodingIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => CodingRoute,
+} as any)
+const RadarIndexRoute = RadarIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RadarRoute,
+} as any)
+const RadarIdRoute = RadarIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => RadarRoute,
+} as any)
+const ApiRadarIndexRoute = ApiRadarIndexRouteImport.update({
+  id: '/api/radar/',
+  path: '/api/radar/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRunsIndexRoute = ApiRunsIndexRouteImport.update({
@@ -43,40 +73,82 @@ const ApiRunsIdRoute = ApiRunsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/raw/$id': typeof RawIdRoute
-  '/runs/$id': typeof RunsIdRoute
+  '/coding': typeof CodingRouteWithChildren
+  '/radar': typeof RadarRouteWithChildren
+  '/coding/$id': typeof CodingIdRoute
+  '/radar/$id': typeof RadarIdRoute
+  '/coding/': typeof CodingIndexRoute
+  '/radar/': typeof RadarIndexRoute
   '/api/runs/$id': typeof ApiRunsIdRoute
+  '/api/radar/': typeof ApiRadarIndexRoute
   '/api/runs/': typeof ApiRunsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/raw/$id': typeof RawIdRoute
-  '/runs/$id': typeof RunsIdRoute
+  '/coding/$id': typeof CodingIdRoute
+  '/radar/$id': typeof RadarIdRoute
+  '/coding': typeof CodingIndexRoute
+  '/radar': typeof RadarIndexRoute
   '/api/runs/$id': typeof ApiRunsIdRoute
+  '/api/radar': typeof ApiRadarIndexRoute
   '/api/runs': typeof ApiRunsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/raw/$id': typeof RawIdRoute
-  '/runs/$id': typeof RunsIdRoute
+  '/coding': typeof CodingRouteWithChildren
+  '/radar': typeof RadarRouteWithChildren
+  '/coding/$id': typeof CodingIdRoute
+  '/radar/$id': typeof RadarIdRoute
+  '/coding/': typeof CodingIndexRoute
+  '/radar/': typeof RadarIndexRoute
   '/api/runs/$id': typeof ApiRunsIdRoute
+  '/api/radar/': typeof ApiRadarIndexRoute
   '/api/runs/': typeof ApiRunsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/raw/$id' | '/runs/$id' | '/api/runs/$id' | '/api/runs/'
+  fullPaths:
+    | '/'
+    | '/coding'
+    | '/radar'
+    | '/coding/$id'
+    | '/radar/$id'
+    | '/coding/'
+    | '/radar/'
+    | '/api/runs/$id'
+    | '/api/radar/'
+    | '/api/runs/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/raw/$id' | '/runs/$id' | '/api/runs/$id' | '/api/runs'
+  to:
+    | '/'
+    | '/coding/$id'
+    | '/radar/$id'
+    | '/coding'
+    | '/radar'
+    | '/api/runs/$id'
+    | '/api/radar'
+    | '/api/runs'
   id:
-    '__root__' | '/' | '/raw/$id' | '/runs/$id' | '/api/runs/$id' | '/api/runs/'
+    | '__root__'
+    | '/'
+    | '/coding'
+    | '/radar'
+    | '/coding/$id'
+    | '/radar/$id'
+    | '/coding/'
+    | '/radar/'
+    | '/api/runs/$id'
+    | '/api/radar/'
+    | '/api/runs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  RawIdRoute: typeof RawIdRoute
-  RunsIdRoute: typeof RunsIdRoute
+  CodingRoute: typeof CodingRouteWithChildren
+  RadarRoute: typeof RadarRouteWithChildren
   ApiRunsIdRoute: typeof ApiRunsIdRoute
+  ApiRadarIndexRoute: typeof ApiRadarIndexRoute
   ApiRunsIndexRoute: typeof ApiRunsIndexRoute
 }
 
@@ -89,18 +161,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/raw/$id': {
-      id: '/raw/$id'
-      path: '/raw/$id'
-      fullPath: '/raw/$id'
-      preLoaderRoute: typeof RawIdRouteImport
+    '/coding': {
+      id: '/coding'
+      path: '/coding'
+      fullPath: '/coding'
+      preLoaderRoute: typeof CodingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/runs/$id': {
-      id: '/runs/$id'
-      path: '/runs/$id'
-      fullPath: '/runs/$id'
-      preLoaderRoute: typeof RunsIdRouteImport
+    '/radar': {
+      id: '/radar'
+      path: '/radar'
+      fullPath: '/radar'
+      preLoaderRoute: typeof RadarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coding/': {
+      id: '/coding/'
+      path: '/'
+      fullPath: '/coding/'
+      preLoaderRoute: typeof CodingIndexRouteImport
+      parentRoute: typeof CodingRoute
+    }
+    '/coding/$id': {
+      id: '/coding/$id'
+      path: '/$id'
+      fullPath: '/coding/$id'
+      preLoaderRoute: typeof CodingIdRouteImport
+      parentRoute: typeof CodingRoute
+    }
+    '/radar/': {
+      id: '/radar/'
+      path: '/'
+      fullPath: '/radar/'
+      preLoaderRoute: typeof RadarIndexRouteImport
+      parentRoute: typeof RadarRoute
+    }
+    '/radar/$id': {
+      id: '/radar/$id'
+      path: '/$id'
+      fullPath: '/radar/$id'
+      preLoaderRoute: typeof RadarIdRouteImport
+      parentRoute: typeof RadarRoute
+    }
+    '/api/radar/': {
+      id: '/api/radar/'
+      path: '/api/radar'
+      fullPath: '/api/radar/'
+      preLoaderRoute: typeof ApiRadarIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/runs/': {
@@ -120,11 +227,37 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CodingRouteChildren {
+  CodingIdRoute: typeof CodingIdRoute
+  CodingIndexRoute: typeof CodingIndexRoute
+}
+
+const CodingRouteChildren: CodingRouteChildren = {
+  CodingIdRoute: CodingIdRoute,
+  CodingIndexRoute: CodingIndexRoute,
+}
+
+const CodingRouteWithChildren =
+  CodingRoute._addFileChildren(CodingRouteChildren)
+
+interface RadarRouteChildren {
+  RadarIdRoute: typeof RadarIdRoute
+  RadarIndexRoute: typeof RadarIndexRoute
+}
+
+const RadarRouteChildren: RadarRouteChildren = {
+  RadarIdRoute: RadarIdRoute,
+  RadarIndexRoute: RadarIndexRoute,
+}
+
+const RadarRouteWithChildren = RadarRoute._addFileChildren(RadarRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  RawIdRoute: RawIdRoute,
-  RunsIdRoute: RunsIdRoute,
+  CodingRoute: CodingRouteWithChildren,
+  RadarRoute: RadarRouteWithChildren,
   ApiRunsIdRoute: ApiRunsIdRoute,
+  ApiRadarIndexRoute: ApiRadarIndexRoute,
   ApiRunsIndexRoute: ApiRunsIndexRoute,
 }
 export const routeTree = rootRouteImport

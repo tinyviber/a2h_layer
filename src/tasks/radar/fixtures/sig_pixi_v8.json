@@ -1,0 +1,14 @@
+{
+  "id": "sig_pixi_v8",
+  "title": "PixiJS 发布 8.6，修复了纹理池在高频重建下的内存抖动",
+  "topic": "游戏框架依赖",
+  "source": "github",
+  "importance": "medium",
+  "detail": "release notes 提到 asset 卸载与纹理池回收的改进，正好对应 game-framework 原型里地图切换时的 GC 抖动。当前锁在 8.x，升级属 minor，风险低。",
+  "suggestion": "下次做性能优化时一并升级到 8.6，现在不必打断。",
+  "href": "https://github.com/pixijs/pixijs/releases",
+  "createdAt": "2026-09-09T08:45:00.000Z",
+  "updatedAt": "2026-09-09T08:45:00.000Z",
+  "unread": true,
+  "status": "new"
+}

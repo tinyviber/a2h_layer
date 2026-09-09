@@ -1,10 +1,11 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { RunMissing, RoutePending } from "@/components/run-missing";
+import { RunReader } from "@/components/run-reader";
 import { getFixtureRun } from "@/lib/fixtures";
 import { getRunFn } from "@/lib/run-functions";
 import type { Run } from "@/lib/run-types";
 
-export const Route = createFileRoute("/raw/$id")({
+export const Route = createFileRoute("/coding/$id")({
   loader: async ({ params }): Promise<Run> => {
     try {
       const run = await getRunFn({ data: { id: params.id } });
@@ -20,33 +21,17 @@ export const Route = createFileRoute("/raw/$id")({
   },
   pendingComponent: RoutePending,
   notFoundComponent: RunMissing,
-  component: RawPage,
+  component: CodingRunPage,
   head: ({ loaderData }) => ({
     meta: [
       {
-        title: loaderData
-          ? `JSON · ${loaderData.title}`
-          : "JSON · Agent Output Reader",
+        title: loaderData ? `${loaderData.title} · Coding` : "Coding",
       },
     ],
   }),
 });
 
-function RawPage() {
+function CodingRunPage() {
   const run = Route.useLoaderData();
-  const json = JSON.stringify(run, null, 2);
-
-  return (
-    <main className="raw-page">
-      <header className="reader-top">
-        <Link to="/runs/$id" params={{ id: run.id }} className="back-link">
-          返回阅读页
-        </Link>
-        <p className="reader-meta">{run.id}</p>
-      </header>
-      <pre className="raw-json" data-testid="raw-json">
-        {json}
-      </pre>
-    </main>
-  );
+  return <RunReader run={run} />;
 }
