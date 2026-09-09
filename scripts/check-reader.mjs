@@ -85,6 +85,22 @@ await page.goto(`${base}/radar`, { waitUntil: "networkidle" });
 const visitedSource = page.locator('[data-signal-id="sig_flat_illustration"]');
 check("visited radar item marked read", (await visitedSource.getAttribute("data-unread")) === "false");
 
+// Radar discover: capability surface + machine path (discover → triage → inbox).
+const discover = page.locator('[data-testid="radar-discover"]');
+check("radar discover toggle exists", (await discover.count()) === 1);
+await page.locator(".radar-discover-toggle").click();
+check("radar discover opens", await page.locator('[data-testid="radar-run"]').isVisible());
+await page.waitForSelector(".radar-source", { timeout: 5000 });
+check("radar discover lists sources", (await page.locator(".radar-source").count()) >= 2);
+await page.locator('[data-testid="radar-run"]').click();
+await page.waitForSelector('[data-testid="radar-outcome"]', { timeout: 20000 });
+check("radar run shows outcome", await page.locator('[data-testid="radar-outcome"]').isVisible());
+await page.goto(`${base}/radar`, { waitUntil: "networkidle" });
+check(
+  "discovered items land in inbox",
+  (await page.locator('[data-signal-id^="radar:"]').count()) > 0,
+);
+
 await browser.close();
 
 if (failures.length) {
