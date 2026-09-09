@@ -21,7 +21,7 @@ export function InboxList({ runs }: { runs: Run[] }) {
         return (
           <li key={run.id}>
             <Link
-              to="/runs/$id"
+              to="/coding/$id"
               params={{ id: run.id }}
               className={`inbox-row status-${run.status}${unread ? " is-unread" : " is-read"}`}
               data-testid="inbox-row"

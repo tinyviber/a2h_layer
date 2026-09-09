@@ -5,8 +5,8 @@ export function RunMissing() {
     <main className="page">
       <p className="empty-copy">找不到这次 Run。</p>
       <p>
-        <Link to="/" className="back-link">
-          返回 Inbox
+        <Link to="/coding" className="back-link">
+          返回 Coding
         </Link>
       </p>
     </main>

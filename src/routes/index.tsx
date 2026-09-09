@@ -1,37 +1,36 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { InboxList } from "@/components/inbox-list";
+import { HomeList } from "@/components/home-list";
 import { RoutePending } from "@/components/run-missing";
 import { listFixtureRuns } from "@/lib/fixtures";
-import { listRunsFn } from "@/lib/run-functions";
+import { listFixtureSignals } from "@/tasks/radar/signal-fixtures";
+import { buildHomeSummary, getHomeFn } from "@/task/home";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
     try {
-      return await listRunsFn();
+      return await getHomeFn();
     } catch {
-      return listFixtureRuns();
+      return buildHomeSummary(listFixtureSignals(), listFixtureRuns());
     }
   },
   pendingComponent: RoutePending,
-  component: InboxPage,
+  component: HomePage,
   head: () => ({
-    meta: [{ title: "Inbox · Agent Output Reader" }],
+    meta: [{ title: "工作台" }],
   }),
 });
 
-function InboxPage() {
-  const runs = Route.useLoaderData();
+function HomePage() {
+  const tasks = Route.useLoaderData();
 
   return (
     <main className="page">
       <header className="inbox-head">
-        <p className="eyebrow">Agent Output Reader</p>
-        <h1>Inbox</h1>
-        <p className="muted">
-          {runs.length} 次投递 · 按更新时间倒序
-        </p>
+        <p className="eyebrow">工作台</p>
+        <h1>任务</h1>
+        <p className="muted">{tasks.length} 个长期任务</p>
       </header>
-      <InboxList runs={runs} />
+      <HomeList tasks={tasks} />
     </main>
   );
 }

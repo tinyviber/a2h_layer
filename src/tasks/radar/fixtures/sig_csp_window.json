@@ -1,0 +1,13 @@
+{
+  "id": "sig_csp_window",
+  "title": "CSP-J/S 初赛报名截止还剩 5 天，普及组模拟卷还差 2 套未转换",
+  "topic": "竞赛",
+  "source": "agent",
+  "importance": "high",
+  "detail": "Radar 的 Agent 周期性检查了 CSP 任务进度：4 套模拟卷里，普及组第 2、4 套的 PDF 还没转成 HydroOJ 客观题格式。截止日前建议集中处理。",
+  "suggestion": "把剩余 2 套排进本周任务，用同一套转换脚本跑完。",
+  "createdAt": "2026-09-09T07:30:00.000Z",
+  "updatedAt": "2026-09-09T07:30:00.000Z",
+  "unread": true,
+  "status": "new"
+}

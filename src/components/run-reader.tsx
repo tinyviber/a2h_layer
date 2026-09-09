@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { BlockView } from "@/components/blocks";
 import {
   AGENT_LABEL,
@@ -12,30 +12,29 @@ import { ACTIONS_VISIBLE, type Run } from "@/lib/run-types";
 
 export function RunReader({ run }: { run: Run }) {
   const { readIds, mark } = useMarkReadOnView(run.id);
+  const [showRaw, setShowRaw] = useState(false);
   const alreadyRead = readIds.has(run.id);
   const actions = run.nextActions.slice(0, ACTIONS_VISIBLE);
   const summary = run.summary.filter((item) => item.trim().length > 0);
 
   return (
     <article className={`reader status-${run.status}`}>
-      <header className="reader-top">
-        <Link to="/" className="back-link">
-          返回
-        </Link>
-        <span className="reader-sep" aria-hidden="true">
-          |
-        </span>
-        <p className="reader-meta">
+      <div className="page">
+        <h1 data-testid="run-h1">{run.title}</h1>
+
+        <p className="reader-meta signal-meta">
           <span>{AGENT_LABEL[run.agent]}</span>
           <span aria-hidden="true"> · </span>
           <span className="status-word">{STATUS_LABEL[run.status]}</span>
+          {run.project ? (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span>{run.project}</span>
+            </>
+          ) : null}
           <span aria-hidden="true"> · </span>
           <time dateTime={run.updatedAt}>{formatRelative(run.updatedAt)}</time>
         </p>
-      </header>
-
-      <div className="page">
-        <h1 data-testid="run-h1">{run.title}</h1>
 
         <section className="summary" aria-label="结论">
           {summary.length ? (
@@ -88,10 +87,20 @@ export function RunReader({ run }: { run: Run }) {
           <span className="foot-sep" aria-hidden="true">
             ·
           </span>
-          <Link to="/raw/$id" params={{ id: run.id }} className="text-toggle">
-            查看原始 JSON
-          </Link>
+          <button
+            type="button"
+            className="text-toggle"
+            onClick={() => setShowRaw((value) => !value)}
+          >
+            {showRaw ? "收起原始 JSON" : "查看原始 JSON"}
+          </button>
         </footer>
+
+        {showRaw ? (
+          <pre className="raw-json" data-testid="raw-json">
+            {JSON.stringify(run, null, 2)}
+          </pre>
+        ) : null}
       </div>
     </article>
   );

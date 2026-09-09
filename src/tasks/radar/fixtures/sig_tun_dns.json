@@ -1,0 +1,14 @@
+{
+  "id": "sig_tun_dns",
+  "title": "Clash Verge Rev 新版本调整了 TUN 模式的 DNS 处理，可能影响你切 iPhone 热点的方案",
+  "topic": "网络环境",
+  "source": "github",
+  "importance": "medium",
+  "detail": "changelog 里 TUN 的 DNS hijack 逻辑有改动，对你「TUN + DNS 劫持下切 iPhone 个人热点保持代理可用」这件事可能有影响。目前还没验证，属待观察。",
+  "suggestion": "切换热点时若代理异常，先查这个版本的 TUN DNS 变更。",
+  "href": "https://github.com/clash-verge-rev/clash-verge-rev/releases",
+  "createdAt": "2026-09-08T14:00:00.000Z",
+  "updatedAt": "2026-09-08T14:00:00.000Z",
+  "unread": true,
+  "status": "new"
+}
