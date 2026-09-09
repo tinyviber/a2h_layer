@@ -2,25 +2,27 @@ import { Link } from "@tanstack/react-router";
 import { formatRelative } from "@/lib/format";
 import { useItemReadState } from "@/lib/read-state";
 import {
-  IMPORTANCE_LABEL,
-  STATUS_LABEL,
+  DECISION_LABEL,
+  type RadarDecision,
   type Signal,
-  type SignalStatus,
 } from "./signal";
 import { RADAR_READ_KEY, useSignalDecision } from "./signal-local";
 
-function resolvedStatus(signal: Signal, override: SignalStatus | null): SignalStatus {
-  return override ?? signal.status;
+function resolvedDecision(
+  signal: Signal,
+  override: RadarDecision | null,
+): RadarDecision | null {
+  return override ?? signal.humanDecision ?? null;
 }
 
 export function SignalList({ signals }: { signals: Signal[] }) {
   const { isUnread } = useItemReadState(RADAR_READ_KEY);
-  const { statusOf } = useSignalDecision();
+  const { decisionOf } = useSignalDecision();
 
   if (!signals.length) {
     return (
       <p className="empty-copy" data-testid="empty-radar">
-        还没有信号。Radar 的 Agent 产出后会出现在这里。
+        还没有 source。Radar 发现值得阅读的内容后会出现在这里。
       </p>
     );
   }
@@ -29,16 +31,15 @@ export function SignalList({ signals }: { signals: Signal[] }) {
     <ul className="inbox-list">
       {signals.map((signal) => {
         const unread = isUnread(signal);
-        const status = resolvedStatus(signal, statusOf(signal.id));
-        const decided = status !== "new";
+        const decision = resolvedDecision(signal, decisionOf(signal.id));
         return (
           <li key={signal.id}>
             <Link
               to="/radar/$id"
               params={{ id: signal.id }}
-              className={`inbox-row signal-row importance-${signal.importance}${
+              className={`inbox-row signal-row${
                 unread ? " is-unread" : " is-read"
-              }${decided ? " is-decided" : ""}`}
+              }${decision ? " is-decided" : ""}`}
               data-testid="signal-row"
               data-signal-id={signal.id}
               data-unread={unread ? "true" : "false"}
@@ -49,15 +50,29 @@ export function SignalList({ signals }: { signals: Signal[] }) {
               <span className="inbox-main">
                 <span className="inbox-title">{signal.title}</span>
                 <span className="inbox-sub">
-                  {signal.topic}
-                  <span aria-hidden="true"> · </span>
-                  {signal.source}
-                  <span aria-hidden="true"> · </span>
-                  重要度 {IMPORTANCE_LABEL[signal.importance]}
-                  {decided ? (
+                  {signal.topic || "未分类"}
+                  {signal.author ? (
                     <>
                       <span aria-hidden="true"> · </span>
-                      <span className="status-word">{STATUS_LABEL[status]}</span>
+                      {signal.author}
+                    </>
+                  ) : null}
+                  {signal.language ? (
+                    <>
+                      <span aria-hidden="true"> · </span>
+                      {signal.language}
+                    </>
+                  ) : null}
+                  {signal.source ? (
+                    <>
+                      <span aria-hidden="true"> · </span>
+                      {signal.source}
+                    </>
+                  ) : null}
+                  {decision ? (
+                    <>
+                      <span aria-hidden="true"> · </span>
+                      <span className="status-word">{DECISION_LABEL[decision]}</span>
                     </>
                   ) : null}
                   <span aria-hidden="true"> · </span>
