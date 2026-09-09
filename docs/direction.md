@@ -1,152 +1,117 @@
 # 产品方向（个人记录）
 
-> 这份文档是「我为什么这样决定」的留档，给未来的我自己看。
-> 不是规范文档；设计细节看 `design.md`，Coding 任务的契约看
-> `output-contract.md`。
+这份文档记录产品为什么这样演化。视觉细节看 `design.md`；Coding 的 Run 契约看 `output-contract.md`。
 
-## 这次要解决的真正问题
+## 最终想做什么
 
-把「Agent Output Reader」从一个**单任务工具**（读 Coding Agent 的 Run），
-推进到「长期可以往里加新任务形态」的产品骨架。
+这是一个我与多个 Model / Agent 长期共同工作的个人界面。
 
-需求里反复出现的真问题是：
+我会有多个长期存在的 **Task**。Task 可能是 Radar、Coding、研究、内容生产、项目观察、自动化，也可能是现在还没出现的形态。
 
-1. 我有多个长期存在的任务，不是单次投递。
-2. 任务各自天然不同——Radar ≠ Coding ≠ 之后的研究/自动化。
-3. 某些流程需要可视化配置；某些只需要 Agent 直接读写。
-4. 不要把所有任务都长成同一种 SaaS Dashboard。
-5. 我和 Agent 长期协作，不是做给企业用的。
+统一的是系统能力和边界，不是页面模板。
+
+- Task 可以连接 Model、Agent、Workflow、Tool/API、Artifact、Schedule 等能力。
+- 某些 Task 可以提供轻量可视化配置；某些 Agent 知道该做什么时可以直接通过 API 读写。
+- 每个 Task 自己决定 Human-facing structure tree、信息层级和 interaction layers。
+- Agent-facing data 与 Human-facing UI 从一开始分离；Agent 不决定最终页面长什么样。
 
 ## 核心抽象：Task
 
-**Task 是长期存在的小型工作空间。** 它拥有：
+Task 是长期存在的小型工作空间。
 
-- **manifest**（id、name、path、description、hint、readKey）—— Home 列出
-  任务、chrome 标任务名时用。
-- **自己的数据契约**（Signal / Run / 未来别的类型）—— zod 校验。
-- **自己的存储**（in-memory + fixtures + POST endpoint）—— Agent 连进来的接
-  口。
-- **自己的 surface**（人阅读它的 React 组件）—— 自由。
-- **本地交互状态**（已读、判断）—— localStorage 覆盖在服务端状态之上。
+真正属于 Task core 的只有少量 identity / lifecycle 信息，例如：
 
-统一的是**「底层能力如何被描述和连接」**，不是页面。
+- id / name / path
+- description / hint
+- 自己的人类 Surface
+- 自己如何暴露和消费系统能力
 
-## 概念清单（核心 5 个，刻意压住）
+**Item、Unread、Decision、Inbox 都不是所有 Task 必须拥有的核心概念。**
+它们只是 Radar、Coding 等某些 Task 可以选择使用的 interaction pattern。
 
-| 概念 | 是什么 | 谁能动它 |
-| --- | --- | --- |
-| **Task** | 一个长期工作空间 | 我（加/改），Task 自己（自己的数据） |
-| **Surface** | Task 的人读层 | Task 自己 |
-| **Item** | Task 里的一条记录（Run / Signal / 未来别的） | Agent / 自动化 / 我 |
-| **Decision** | 人对一条 Item 的判断（已读 / 跟进 / 忽略 / …） | 只有我（localStorage） |
-| **Ingest endpoint** | Agent 投数据的入口 | Agent |
+例如未来 Workflow 型 Task 完全可能只关心 running / next run / approval，而不存在“未读 Item”。
 
-刻意没有引入的概念：workflow engine、event bus、capability registry、用户
-系统、权限、推送、跨任务聚合。详见「暂不做」。
+## Home 是 projection，不是 domain model
 
-## 「统一系统，不统一页面」怎么落
+Home 只回答：
 
-**统一的（所有 Task 必须用）：**
+> 现在有哪些 Task？哪里值得我注意？最近发生了什么？
 
-- 设计 token（paper / text / muted / track / 强条色 4 个）
-- 字体、间距、字号梯度
-- Task chrome（`工作台 | TaskName`），sticky，所有 Task 都用
-- 「未读 = 6px 近黑圆点」「待处理 = 文字词」这套视觉语言
-- 「3px 左边条 = 单一信号（状态 / 重要度）」的用法
-- Agent ingest 端点的协议风格（`POST /api/<task>/`，返回 400/201，zod
-  校验）
+每个 Task 自己向 Home 提供一个轻量 projection。当前 Radar / Coding 使用 `local-read` attention pattern；未来 Task 可以直接提供 count，或完全不使用 attention。
 
-**灵活的（每个 Task 自己决定）：**
+因此 Home 不应该知道 Task 内部到底是 Run、Source、Workflow 还是别的数据。
 
-- 数据形状与字段名（Signal 有 `topic/source/importance`，Run 有
-  `agent/status/blocks`）
-- 阅读顺序（Run: 标题→结论→下一步→证据；Signal: 标题→建议→详情→判断）
-- 行的 meta 字段（Run 有 `agent · status · project`，Signal 有
-  `topic · source · 重要度`）
-- 人的交互动作（Run: 标记已读；Signal: 跟进 / 忽略）
+`src/task/home-registry.ts` 是 Task-specific projection 的注册点；`home.ts` 只做通用聚合。
 
-## Home 是概览，不是 Dashboard
+## Radar 的真实语义
 
-只有 5 个组件在页面上：
+Radar 不是监控告警系统，也不是“importance + suggestion”的 Signal 列表。
 
-- 任务名
-- 一行描述
-- 待处理条数（或「暂无待处理」）
-- 最新变化（标题 + 相对时间）
-- 一个未读圆点
+它是一个 **多语言 source discovery / reading inbox**：
 
-没有 cards，没有 metric triptych，没有图表，没有 KPI。一份安静的清单，像打开
-笔记的第一页。
+1. Agent / Workflow 从 X、RSS、Search、GitHub 等来源扩大候选池。
+2. 筛出值得人类投入注意力的 source。
+3. 保存作者、语言、来源、可见互动指标等上下文。
+4. 给出中文短摘要、argument map、为什么值得读，以及必要的批判或疑点。
+5. 人阅读原始 source，再进行 Human Think / Reflection。
+6. 人的判断可以被后续 Agent 消费，继续研究或创作。
 
-## 为什么 Radar 放在第一位
+Radar contract 允许 task-specific attributes 演化，并保留未知字段；但 Human-owned decision 是保留字段，Agent ingest 不能伪造。
 
-Radar 是需求里被点名最多的任务类型，也是最容易证伪「统一系统不统一页面」
-的——它的交互本质是「读 → 判断 → 继续」，和 Coding 的「读结果」完全不是同
-一件事。如果 Radar 也能用任务基座跑起来，并且看起来**根本不像** Coding，那
-这个抽象就是对的。
+## Human state 的 ownership
 
-Coding 是已存在的工作，**完全保留**，重定位为「Coding 任务」，证明旧内容不
-会被抽象掉。
+机器产出的状态与人的判断必须分开。
 
-## 暂不做（明确清单）
+- Agent 可以创建 / 更新 RadarItem。
+- Human 可以产生 decision / reflection。
+- Agent 可以读取 Human state，作为下一轮工作的输入。
+- Agent 不可以在 ingest 时冒充 Human 写 decision。
 
-这一阶段**故意没做**的事。每一条都是深思熟虑的「以后再说」，不是遗漏。
+当前 persistence 仍然只是开发期内存 + local cache，但这只是 adapter，不是语义归属。
 
-- **没有 workflow editor / 低代码画布**。Radar 的自动化将来是 Radar 自己
-  的 `automations/`（cron + Agent 调用），不是一个通用的可视化层。某些 Task
-  可以拥有 workflow 能力，**但 workflow 不是产品的核心**。
-- **没有真实的模型 / Agent / 搜索 API 调用**。fixtures 起步，Agent 的接入是
-  通过 `POST` 端点已经跑通，剩下的是 Radar 自己内部的事。
-- **没有跨任务的事件总线 / 时间线聚合**。Home 当前只问每个 Task 「最新一条
-  是什么」，跨任务的事件流是另一种语义层，加之前会先看是否真的需要。
-- **没有真实数据库 / 持久化**。重启丢内存投递；这是 dev 阶段的诚实选择，
-  上线前会接存储。
-- **没有登录 / 鉴权 / 多用户**。单人长期使用，不需要。
-- **没有推送 / 实时通知**。当前是「我打开看」。
-- **没有 artifact 文件存储 / 预览服务器**。Signal 里的 `href` 是外链，不是
-  上传。
-- **没有 per-task 自定义属性 schema 引擎**（YAML 驱动 surface）。Surface
-  现在是 React 代码，是更诚实的实现方式。
-- **没有 darker mode / 主题切换**。design.md 明确不要 dark theme；如果以
-  后真要，要么整体重做设计语言，要么就别做。
-- **没有跨设备的同步**。localStorage 是设备本地的；以后要么接存储，要么接
-  某个轻同步层。
+## System-level Capability
 
-## 决策里我特意避开的东西
+Model、Agent、Workflow、Tool/API、Artifact、Schedule 等能力最终应该成为可复用的 system-level primitives。
 
-- **没把 Dashboard 做成默认入口**。Home 是清单，不是工作台里的另一张
-  Dashboard。需求里点名了 n8n / dashboard / workflow / tree / layer 这些词，
-  这些是描述体验时使用的语言，不是 UI 元素的名字。
-- **没把 importance 做成颜色徽章 / 胶囊**。design.md 明确禁掉了 badge /
-  pill 堆。importance 通过左边条 + 文字词表达，最强也只是「近黑」。
-- **没把 跟进 / 忽略 写成 server mutation**。判断是人的事，留在
-  localStorage；这是 dev 阶段的诚实选择。
-- **没把 Task 设计成插件系统**。注册表就是 `src/task/tasks.ts` 里的一个数
-  组，加 Task = 写 manifest、components、route。这个数量级的「扩展机制」
-  对个人项目是合适的，不值得做一个框架。
-- **没把 output-contract.md 改成支持 Signal**。它是 Coding 任务的契约；
-  Radar 的契约在 `src/tasks/radar/signal.ts`。每个 Task 自己定义契约。
-- **没把 raw JSON 留在独立路由**。原来 `/raw/:id` 现在折叠到
-  `/coding/:id` 的页脚里。Debug 视角不应该有自己的顶级路由。
+但是：
 
-## 未来可以长出来的方向
+**能力可以统一，能力如何被组合和呈现必须由 Task 决定。**
 
-这些**不是这一阶段的目标**，但基座已经为它们留出了位置：
+这意味着未来可以共享同一个 model registry / agent runtime / workflow runtime，但 Radar 不必因此长得像 Coding，也不必强迫所有 Task 使用可视化 workflow editor。
 
-- 第三个 Task：研究 / 内容 / 项目观察 / 自动化之一，看那时真实需求而定。
-- Radar 内部的自动化（cron 拉取、Agent 巡检、模型打分重要性）作为 Radar
-  自己的能力，不是系统的通用能力。
-- 持久化（替换 in-memory Map）。
-- 跨任务通知：当一个 Task 的状态变化波及另一个时——但**先看是否真的需要**。
-- 在某个 Task 内部出现「不是 inbox 也不是文档」的第三种形态（比如一个
-  timeline view、或者一个 workflow step 列表），证明 surface 的自由度能撑住。
+现在不要急着实现完整 capability registry；先通过真实 Task 验证需要哪些 primitive。
 
-## 演化轨迹
+## 当前已经验证的两个 Task
 
-设计语言因为产品范围扩大而演化的部分：
+### Coding
 
-- 新增「任务框架」概念：Home / Task chrome / in-task list / reading pages
-  四层，每一层有自己的视觉规则。
-- 新增 attention 模型：未读圆点 + 待处理计数 + 重要度左边条。
-- 共享的视觉语言（设计 token）完全保留，没有被新组件稀释。
-- 没有任何规则被削弱；只有新规则被加入。
+保留原 Agent Output Reader：Run → summary → next action → evidence blocks → raw JSON。
+
+### Radar
+
+作为第二种完全不同的 surface，验证“统一系统，不统一页面”。它更接近阅读 Inbox，而不是 Run reader。
+
+## 暂不做
+
+这一阶段仍然故意不做：
+
+- 完整 workflow editor / node canvas
+- 企业级低代码平台
+- 多用户 / 权限系统
+- 推送系统
+- 完整 artifact storage
+- 动态 YAML/JSON 驱动所有页面的 schema engine
+- 为未来需求预先造复杂插件框架
+
+## 接下来应该验证什么
+
+下一阶段优先验证 **Task 如何使用共享 Capability**，而不是继续增加静态页面。
+
+可以从 Radar 开始，让它能够描述和连接自己需要的：
+
+- model
+- agent
+- source/search API
+- schedule / workflow
+
+先形成一个小而清楚的 capability boundary，再决定哪些值得提升为真正的通用系统能力。
