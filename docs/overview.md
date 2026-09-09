@@ -1,101 +1,78 @@
-# 概览：把仓库推进到「任务型个人工作界面」
+# 概览：任务型个人工作界面
 
 ## 一句话
 
-把 `Agent Output Reader` 从「单任务阅读层」推进成「任务型个人工作界面」的
-产品骨架：Home 概览 + 第一个新任务 Radar + 重定位 Coding，**保留**所有已有
-有效成果。
+把 `Agent Output Reader` 从单任务阅读层推进成可以长期加入不同 Task 的个人工作界面，同时保留 Coding Reader 已有成果。
 
-## 做了什么
+## 当前结构
 
-### 核心抽象：Task（统一系统，不统一页面）
+### Task core
 
-`src/task/` 引入最小的任务基座：
-- `TaskMeta`：id / name / path / readKey / description / hint（Home 与 chrome 用）
-- `TaskSummary`：归一化条目数组（让 Home 不感知 Signal/Run 的具体形状）
-- `tasks.ts`：注册表——加 Task = 写一个文件 + 登记一行
-- `home.ts`：Home 聚合（pure `buildHomeSummary` + `getHomeFn` server fn）
+`src/task/` 只保留真正通用的部分：
 
-### Home（`/`）—— 概览，不是 Dashboard
+- `TaskMeta`：id / name / path / description / hint
+- `TaskSummary`：Task 投给 Home 的 projection，而不是 Task domain model
+- `tasks.ts`：Task identity registry
+- `home-registry.ts`：Task-specific Home adapter
+- `home.ts`：完全通用的 Home aggregation
 
-`src/components/home-list.tsx`：安静的任务清单。
-- 每行：任务名（strong）+ 描述（muted）+ 待处理计数 + 最新变化 + 相对时间
-- 未读沿用 6px 近黑圆点
-- 没有 cards，没有指标，没有图表
+**Item / unread / decision / Inbox 都不是 Task 的必选概念。**
 
-### 第一个新任务：Radar（`/radar`）
+### Home
 
-`src/tasks/radar/`：
-- Signal 契约（`signal.ts`，zod 校验）：id / title / topic / source /
-  importance / detail / suggestion / href / 时间戳 / unread / status
-- 内存存储 + fixtures（5 条贴近真实关注主题的信号）
-- `POST /api/radar/` ingest（与 `POST /api/runs` 同模式）
-- 列表 + 阅读组件：
-  - **阅读顺序固定为** 标题 → 元信息 → **建议（先于详情，判断优先）** →
-    详情 → 来源 → 跟进/忽略
-  - 跟进/忽略为本地状态（localStorage），不改服务端
-  - 重要度通过 3px 左边条表达：高=近黑、中=muted、低=track（去强调）
+Home 只显示 Task 以及每个 Task 自己愿意投影出来的 attention / latest change。
 
-### 现有 Reader 重定位为 Coding（`/coding`）
+当前 Radar / Coding 都使用 local-read attention pattern；未来 Task 可以直接给 count，或没有 attention。
 
-- 完全保留 Run 契约与阅读组件，重挂到 `/coding` 路径
-- raw JSON 折叠到阅读页内（去掉独立 `/raw/:id` 路由）
-- 已读状态 hook 泛化（`useItemReadState(storageKey)`），保留旧 key 兼容
+入口直接使用 `task.path`，Home 不再写 Radar/Coding 分支。
 
-### 共享框架
+### Radar
 
-- `TaskChrome`：sticky 顶部 `工作台 | TaskName`（所有任务页统一）
-- 每个任务的路由用 layout + index 模式，TaskChrome 上移到 layout
+Radar 是 **多语言 source discovery / reading Inbox**，不是告警 Signal console。
 
-### 文档
+Canonical item 可以表达：
 
-- `README.md`：从「Agent Output Reader」重写为产品 README
-- `design.md`：在原原则基础上加入 Home / Task chrome / Radar 信号语言 / per-
-  task surface 自由度
-- `docs/direction.md`：核心决策 + **「暂不做」清单**（workflow editor / 跨
-  任务事件总线 / 真实数据库 / 推送 / 鉴权 / 工作流编辑器 全部明确推迟）
-- `output-contract.md`：不变（Coding 任务的契约）
+- title / topic / source
+- author / language / original URL
+- visible engagement context
+- summary
+- argument map
+- why worth reading
+- critique / doubts
+- task-specific flexible attributes
 
-## 关键设计判断（不能机械实现的部分）
+旧 prototype 的 `detail / suggestion / href` 仍可作为 migration input；parser 会 normalize 成新的字段。
 
-1. **核心抽象是 Task，不是 Dashboard/workflow/tree/layer**——这些是描述语言
-   不是 UI 元素。
-2. **Home 是清单，不是 dashboard**——一行一个任务 + 未读点 + 最新变化。
-3. **Unify system, not pages**——设计 token / chrome / ingest 协议一致，
-   surface（人读层）每个任务自由。
-4. **重要性/状态的视觉语言**只用「文字词 + 3px 边条 + 6px 圆点」，没有 badge
-   / pill / 卡片堆。
-5. **判断（跟进/忽略）是 localStorage 覆盖**——dev 阶段的诚实选择，不假装有
-   mutation API。
-6. **Radar 放第一位**：它与 Coding 交互完全不同（读→判断 vs 读结果），最能证
-   伪「统一系统不统一页面」。
+未知 task attributes 会保留，不再出现“接收成功但静默丢字段”。时间戳在 ingest 时 normalize 成 UTC ISO string。
 
-## 暂不做（明确清单）
+### Human decision ownership
 
-- workflow editor / 低代码画布
-- 真实模型 / Agent / 搜索 API 调用
-- 跨任务事件总线 / 推送 / 通知
-- 真实数据库 / 持久化
-- 登录 / 鉴权 / 多用户
-- artifact 文件存储 / 预览服务器
-- per-task 动态 schema 引擎
+Agent 通过 `POST /api/radar/` 写 RadarItem。
 
-详见 `docs/direction.md`。
+Human 通过 `PUT /api/radar/` 写 `{ id, decision }`。
 
-## 验证
+Human decision 与 Agent-owned item 分开存储，并在 `GET /api/radar/` 时合并，所以后续 Agent 能读取人的判断；Agent ingest 中出现的 `humanDecision / decision / status` 会被剥离，不能冒充人的判断。
 
-- `npm run typecheck`：通过
-- `npm run build`：通过（Vite + nitro，89ms）
-- `npm test`：189/195 通过（6 个失败均在 `grok-pwa-plugin.test.mjs` 平台测试
-  里，与产品改动无关，是本地环境差异）
-- `node scripts/check-reader.mjs`：所有断言通过（Home 2 任务、Coding ≥6
-  runs、failed 证据可见、log tail 80、diff preview 40、mark-read、Radar ≥5
-  信号 等）
-- 真实浏览器渲染：桌面 + 移动（390px）截图均在 `screenshots/`
+localStorage 只承担 UI cache / offline fallback，不再被定义成人类状态的最终语义归属。
 
-## 接下来可以做的（按基座已留出的位置）
+### Coding
 
-- 第三个 Task（研究 / 内容 / 项目观察 / 自动化 之一）——证明 surface 自由度
-- Radar 内部自动化（cron + Agent 调用）——作为 Radar 自己的能力
-- 持久化替换 in-memory
-- 跨任务通知——**先看是否真的需要**
+旧 Run reader 保留并重定位到 `/coding`：summary → next actions → evidence blocks → inline raw JSON。
+
+## 视觉
+
+保留这次 redesign 的主要视觉方向：暖纸背景、暖白 card、克制阴影、移动端优先、无 gradient/glass/badge pile。
+
+`design.md` 已明确：card 是安静的结构容器，不是 SaaS card wall；Radar 不再使用虚构的 importance 色条。
+
+## QA
+
+- `run-contract.test.ts` 已接入 `npm test`
+- 新增 Radar contract tests：legacy normalize、unknown attrs preserve、Agent 不能写 Human decision、ISO time
+- Browser QA 现在实际打开 Radar reader，测试原始 source 链接、Human decision、撤销、已读状态和 mobile overflow
+
+## 下一步
+
+下一阶段优先验证 Task 如何连接共享的 Capability：Model / Agent / Workflow / Tool/API / Schedule。
+
+Capability 可以系统级复用；它在具体 Task 里如何组合、配置和展示，由 Task 自己决定。先从 Radar 的真实需求形成一个小而清楚的 capability boundary，不急着造完整 n8n 式画布。
