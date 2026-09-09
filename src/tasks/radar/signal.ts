@@ -1,116 +1,184 @@
 import { z } from "zod";
 
-// Radar 的数据模型：一条「信号」。
-// Radar 观察几个主题；Agent（或未来的自动化流程）产出需要人判断的信号。
-// 机器投信号，人决定：跟进 / 忽略。
+// Radar 的 domain：多语言 source discovery / reading inbox。
+// Agent 负责发现并整理候选；Human-facing surface 负责阅读、判断和后续思考。
+// 这不是告警系统，因此 importance / status 不是 canonical domain fields。
 
-export const IMPORTANCES = ["low", "medium", "high"] as const;
-export const SIGNAL_STATUSES = ["new", "followed", "dismissed"] as const;
+export const RADAR_DECISIONS = ["saved", "dismissed"] as const;
+export type RadarDecision = (typeof RADAR_DECISIONS)[number];
 
-export type SignalImportance = (typeof IMPORTANCES)[number];
-export type SignalStatus = (typeof SIGNAL_STATUSES)[number];
+export type RadarEngagement = Record<string, string | number>;
 
-export type Signal = {
+export type RadarItem = {
   id: string;
-  /** 一句话：发生了什么、需要你看什么。 */
+  /** 原文/来源的可读标题。 */
   title: string;
-  /** 属于哪个观察主题。 */
+  /** 用户关注方向，例如 AI / 游戏设计 / 人生故事。 */
   topic: string;
-  /** 来源：github / rss / search / agent … */
+  /** 来源平台或发现渠道，例如 x / rss / search / github。 */
   source: string;
-  importance: SignalImportance;
-  /** 可选：更完整的说明（纯文本，按段落显示）。 */
-  detail: string;
-  /** 建议动作，一句话。 */
-  suggestion: string;
-  /** 可选：来源链接。 */
-  href?: string;
+  author?: string;
+  language?: string;
+  url?: string;
+  publishedAt?: string;
+  engagement?: RadarEngagement;
+  /** 中文短摘要，不替代原文。 */
+  summary: string;
+  /** 核心论证或叙事结构，保持可扫读。 */
+  argumentMap: string[];
+  /** 为什么值得投入人类注意力。 */
+  whyWorthReading: string;
+  /** 必要的质疑、反例或不确定性。 */
+  critique: string;
   createdAt: string;
   updatedAt: string;
   unread: boolean;
-  status: SignalStatus;
+  /** 只由 Human interaction layer 写入；Agent ingest 不能声明这个字段。 */
+  humanDecision?: RadarDecision;
+  /** Forward-compatible task attributes. */
+  [key: string]: unknown;
 };
 
-export const TITLE_MAX = 100;
-export const DETAIL_MAX = 8000;
-export const SUGGESTION_MAX = 200;
+// 旧代码文件名仍叫 signal-*，先保留别名避免无意义的大规模 rename。
+export type Signal = RadarItem;
 
-const SignalSchema = z
+export const TITLE_MAX = 180;
+export const SUMMARY_MAX = 8000;
+export const NOTE_MAX = 2400;
+
+const EngagementSchema = z
+  .record(z.string(), z.union([z.string(), z.number()]))
+  .optional();
+
+const RadarItemSchema = z
   .object({
     id: z.string().trim().min(1),
     title: z.string().trim().min(1).max(TITLE_MAX),
-    topic: z.string(),
-    source: z.string(),
-    importance: z.enum(IMPORTANCES),
-    detail: z.string().max(DETAIL_MAX).optional().default(""),
-    suggestion: z.string().max(SUGGESTION_MAX).optional().default(""),
-    href: z.string().optional(),
+    topic: z.string().optional().default(""),
+    source: z.string().optional().default(""),
+    author: z.string().optional(),
+    language: z.string().optional(),
+    url: z.string().optional(),
+    publishedAt: z.string().optional(),
+    engagement: EngagementSchema,
+    summary: z.string().max(SUMMARY_MAX).optional(),
+    argumentMap: z.array(z.string()).max(24).optional().default([]),
+    whyWorthReading: z.string().max(NOTE_MAX).optional(),
+    critique: z.string().max(NOTE_MAX).optional().default(""),
     createdAt: z.string().min(1),
     updatedAt: z.string().min(1),
     unread: z.boolean().optional(),
-    status: z.enum(SIGNAL_STATUSES).optional(),
+
+    // Legacy prototype fields: accepted only as migration input, then normalized.
+    detail: z.string().max(SUMMARY_MAX).optional(),
+    suggestion: z.string().max(NOTE_MAX).optional(),
+    href: z.string().optional(),
   })
   .loose();
 
 export type ParseSignalResult =
-  | { ok: true; signal: Signal }
+  | { ok: true; signal: RadarItem }
   | { ok: false; error: string };
 
-function isIsoDate(value: string): boolean {
-  return !Number.isNaN(Date.parse(value));
+function normalizeIsoDate(value: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T/.test(value)) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
+function preservedExtras(input: Record<string, unknown>): Record<string, unknown> {
+  const knownOrReserved = new Set([
+    "id",
+    "title",
+    "topic",
+    "source",
+    "author",
+    "language",
+    "url",
+    "publishedAt",
+    "engagement",
+    "summary",
+    "argumentMap",
+    "whyWorthReading",
+    "critique",
+    "createdAt",
+    "updatedAt",
+    "unread",
+    "detail",
+    "suggestion",
+    "href",
+    // Human-owned / legacy decision fields must never pass through Agent ingest.
+    "humanDecision",
+    "decision",
+    "status",
+  ]);
+  return Object.fromEntries(
+    Object.entries(input).filter(([key]) => !knownOrReserved.has(key)),
+  );
 }
 
 export function parseSignal(input: unknown): ParseSignalResult {
   if (input === null || typeof input !== "object" || Array.isArray(input)) {
-    return { ok: false, error: "信号必须是一个 JSON 对象" };
+    return { ok: false, error: "Radar item 必须是一个 JSON 对象" };
   }
-  const parsed = SignalSchema.safeParse(input);
+
+  const parsed = RadarItemSchema.safeParse(input);
   if (!parsed.success) {
     const message = parsed.error.issues
       .map((issue) => {
-        const path = issue.path.length ? issue.path.join(".") : "signal";
+        const path = issue.path.length ? issue.path.join(".") : "radarItem";
         return `${path}: ${issue.message}`;
       })
       .join("; ");
     return { ok: false, error: message };
   }
+
   const data = parsed.data;
-  if (!isIsoDate(data.createdAt) || !isIsoDate(data.updatedAt)) {
-    return { ok: false, error: "createdAt / updatedAt 必须是 ISO-8601" };
+  const createdAt = normalizeIsoDate(data.createdAt);
+  const updatedAt = normalizeIsoDate(data.updatedAt);
+  const publishedAt = data.publishedAt
+    ? normalizeIsoDate(data.publishedAt)
+    : undefined;
+  if (!createdAt || !updatedAt || (data.publishedAt && !publishedAt)) {
+    return {
+      ok: false,
+      error: "createdAt / updatedAt / publishedAt 必须是 ISO-8601 date-time",
+    };
   }
-  const signal: Signal = {
+
+  const extras = preservedExtras(input as Record<string, unknown>);
+  const signal: RadarItem = {
+    ...extras,
     id: data.id,
     title: data.title,
     topic: data.topic,
     source: data.source,
-    importance: data.importance,
-    detail: data.detail,
-    suggestion: data.suggestion,
-    ...(data.href ? { href: data.href } : {}),
-    createdAt: data.createdAt,
-    updatedAt: data.updatedAt,
+    ...(data.author ? { author: data.author } : {}),
+    ...(data.language ? { language: data.language } : {}),
+    ...(data.url || data.href ? { url: data.url ?? data.href } : {}),
+    ...(publishedAt ? { publishedAt } : {}),
+    ...(data.engagement ? { engagement: data.engagement } : {}),
+    summary: data.summary ?? data.detail ?? "",
+    argumentMap: data.argumentMap,
+    whyWorthReading: data.whyWorthReading ?? data.suggestion ?? "",
+    critique: data.critique,
+    createdAt,
+    updatedAt,
     unread: data.unread ?? true,
-    status: data.status ?? "new",
   };
   return { ok: true, signal };
 }
 
-export function sortSignals(signals: Signal[]): Signal[] {
+export function sortSignals(signals: RadarItem[]): RadarItem[] {
   return [...signals].sort((a, b) => {
-    const byTime = b.updatedAt.localeCompare(a.updatedAt);
+    const byTime = new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     if (byTime !== 0) return byTime;
     return a.id.localeCompare(b.id);
   });
 }
 
-export const IMPORTANCE_LABEL: Record<SignalImportance, string> = {
-  low: "低",
-  medium: "中",
-  high: "高",
-};
-
-export const STATUS_LABEL: Record<SignalStatus, string> = {
-  new: "待判断",
-  followed: "跟进",
-  dismissed: "忽略",
+export const DECISION_LABEL: Record<RadarDecision, string> = {
+  saved: "留待细读",
+  dismissed: "略过",
 };
