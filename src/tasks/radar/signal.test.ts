@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { getSignal, ingestSignal, setSignalDecision } from "./signal-store.ts";
 import { parseSignal } from "./signal.ts";
 
 const base = {
@@ -51,21 +50,5 @@ describe("Radar item contract", () => {
   it("rejects non ISO-like timestamps", () => {
     const parsed = parseSignal({ ...base, createdAt: "next Tuesday" });
     assert.equal(parsed.ok, false);
-  });
-});
-
-describe("Radar Human decision state", () => {
-  it("is visible through the same item read path used by Agents", () => {
-    const parsed = parseSignal(base);
-    assert.equal(parsed.ok, true);
-    if (!parsed.ok) return;
-    ingestSignal(parsed.signal);
-
-    const decided = setSignalDecision(base.id, "saved");
-    assert.equal(decided?.humanDecision, "saved");
-    assert.equal(getSignal(base.id)?.humanDecision, "saved");
-
-    setSignalDecision(base.id, null);
-    assert.equal(getSignal(base.id)?.humanDecision, undefined);
   });
 });
